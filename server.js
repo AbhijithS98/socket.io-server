@@ -136,29 +136,6 @@ async function pollJobs() {
 }
 pollJobs();
 
-// await redisSub.subscribe("jobs", (message) => {
-//   const job = JSON.parse(message);
-//   console.log("📥 Received job:", job);
-
-//   const { client, requestId } = job;
-//   const socket = clients.get(client);
-
-//   if (!socket) {
-//     console.error(`❌ No client connected with id: ${client}`);
-//     // send failure back to main platform
-//     redisPub.publish(
-//       "responses",
-//       JSON.stringify({ requestId, error: "Client not connected" })
-//     );
-//     return;
-//   }
-
-//   // Forward job to the correct Electron client
-//   socket.emit("perform-job", job);
-//   console.log(`Forwarded job ${requestId} to client ${client}`);
-// });
-
-
 
 server.listen(PORT, () => {
   console.log(`Socket-io server listening on port ${PORT} as ${CONSUMER}`);
