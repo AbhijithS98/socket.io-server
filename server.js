@@ -13,25 +13,35 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 // Redis setup
 const redis = createClient();
-const redisPublisher = createClient();
+await redis.connect();
 
 await redis.connect();
 await redisPublisher.connect();
 
-const GROUP = "jobsGroup";
-const STREAM = "jobsStream";
+const JOBS_GROUP = "jobsGroup";
+const JOBS_STREAM = "jobsStream";
+const RESPONSES_GROUP = "responsesGroup";
+const RESPONSES_STREAM = "responsesStream";
 const CONSUMER = `io-${Math.floor(Math.random() * 10000)}`; 
 
 // Ensure group exists
 try {
-  await redis.xGroupCreate(STREAM, GROUP, "0", { MKSTREAM: true });
-  console.log(`Created group ${GROUP}`);
+  await redis.xGroupCreate(JOBS_STREAM, JOBS_GROUP, "0", { MKSTREAM: true });
+  console.log(`Created group ${JOBS_GROUP}`);
 } catch (err) {
   if (err.message.includes("BUSYGROUP")) {
-    console.log(`Group ${GROUP} already exists`);
+    console.log(`Group ${JOBS_GROUP} already exists`);
   } else throw err;
 }
 
+try {
+  await redis.xGroupCreate(RESPONSES_STREAM, RESPONSES_GROUP, "0", { MKSTREAM: true });
+  console.log(`Created group ${RESPONSES_GROUP}`);
+} catch (err) {
+  if (err.message.includes("BUSYGROUP")) {
+    console.log(`Group ${RESPONSES_GROUP} already exists`);
+  } else throw err;
+}
 
 // Socket.IO setup
 const PORT = process.env.PORT || 3000;
@@ -56,23 +66,23 @@ io.on("connection", (socket) => {
   });
 
 
-
   // Client sends back a response
   socket.on("job-response",async (response) => {
-    console.log(`📤 Got response from client- ${response.clientId}`);
+    console.log(`📤 Got response from client-${response.clientId}`);
 
-    // Forward to main platform
     try{
-      await redisPublisher.publish("responses",JSON.stringify(response));
-      console.log(`📤 Forwarded response from client- ${response.clientId} to main platform`);
+      // Add response to Redis Stream
+      await redis.xAdd(RESPONSES_STREAM, "*", {
+        response: JSON.stringify(response),
+      });
+      console.log(`📤 Stored response from client-${response.clientId} in stream`);
     } catch (err) {
-      console.error(`❌ Failed to publish response for client ${response.clientId}:`, err);
-      await redisPublisher.publish("responses", JSON.stringify({ requestId: response.requestId, error: err}));
+      console.error(`❌ Failed to add response for client ${response.clientId}:`, err);
     }
     
-    // Acknowledge job after processing (important)
+    // Acknowledge job after processing
     if (response.requestId && response.streamId) {
-      await redis.xAck(STREAM, GROUP, response.streamId);
+      await redis.xAck(JOBS_STREAM, JOBS_GROUP, response.streamId);
       console.log(`✅ Acked job ${response.requestId}`);
     }
   });
@@ -91,10 +101,10 @@ io.on("connection", (socket) => {
 });
 
 
-// Continuously read jobs from main platform stream
+// Continuously read jobs from main platform
 async function pollJobs() {
   while (true) {
-    const jobs = await redis.xReadGroup(GROUP, CONSUMER, [{ key: STREAM, id: ">" }], {
+    const jobs = await redis.xReadGroup(JOBS_GROUP, CONSUMER, [{ key: JOBS_STREAM, id: ">" }], {
       BLOCK: 5000,
       COUNT: 1,
     });
@@ -111,12 +121,13 @@ async function pollJobs() {
 
         if (!socket) {
           console.error(`❌ Client ${client} not connected`);
-          await redisPublisher.publish("responses", JSON.stringify({ requestId, error: "Client not connected" }));
-          await redis.xAck(STREAM, GROUP, message.id); // mark as done
+          await redis.xAdd(RESPONSES_STREAM, "*", {
+            response: JSON.stringify({ requestId, error: "Client not connected" }),
+          });
+          await redis.xAck(JOBS_STREAM, JOBS_GROUP, message.id);
           continue;
         }
 
-        // Attach streamId so we can ack later
         socket.emit("perform-job", { ...job, streamId: message.id });
         console.log(`Forwarded job ${requestId} to client ${client}`);
       }
