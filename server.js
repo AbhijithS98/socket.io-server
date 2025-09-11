@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
@@ -15,14 +15,11 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 const redis = createClient();
 await redis.connect();
 
-await redis.connect();
-await redisPublisher.connect();
-
 const JOBS_GROUP = "jobsGroup";
 const JOBS_STREAM = "jobsStream";
 const RESPONSES_GROUP = "responsesGroup";
 const RESPONSES_STREAM = "responsesStream";
-const CONSUMER = `io-${Math.floor(Math.random() * 10000)}`; 
+const CONSUMER = `io-${Math.floor(Math.random() * 10000)}`;
 
 // Ensure group exists
 try {
@@ -35,7 +32,9 @@ try {
 }
 
 try {
-  await redis.xGroupCreate(RESPONSES_STREAM, RESPONSES_GROUP, "0", { MKSTREAM: true });
+  await redis.xGroupCreate(RESPONSES_STREAM, RESPONSES_GROUP, "0", {
+    MKSTREAM: true,
+  });
   console.log(`Created group ${RESPONSES_GROUP}`);
 } catch (err) {
   if (err.message.includes("BUSYGROUP")) {
@@ -49,7 +48,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*" },
-  maxHttpBufferSize: 10e6 // 10MB limit
+  maxHttpBufferSize: 10e6, // 10MB limit
 });
 
 const clients = new Map();
@@ -58,36 +57,37 @@ const clients = new Map();
 io.on("connection", (socket) => {
   console.log("✅ Electron client connected:", socket.id);
 
-
   // Client registers itself
   socket.on("register", (clientId) => {
     clients.set(clientId, socket);
     console.log(`🟢 Registered client: ${clientId}`);
   });
 
-
   // Client sends back a response
-  socket.on("job-response",async (response) => {
+  socket.on("job-response", async (response) => {
     console.log(`📤 Got response from client-${response.clientId}`);
 
-    try{
+    try {
       // Add response to Redis Stream
       await redis.xAdd(RESPONSES_STREAM, "*", {
         response: JSON.stringify(response),
       });
-      console.log(`📤 Stored response from client-${response.clientId} in stream`);
+      console.log(
+        `📤 Stored response from client-${response.clientId} in stream`
+      );
     } catch (err) {
-      console.error(`❌ Failed to add response for client ${response.clientId}:`, err);
+      console.error(
+        `❌ Failed to add response for client ${response.clientId}:`,
+        err
+      );
     }
-    
+
     // Acknowledge job after processing
     if (response.requestId && response.streamId) {
       await redis.xAck(JOBS_STREAM, JOBS_GROUP, response.streamId);
       console.log(`✅ Acked job ${response.requestId}`);
     }
   });
-
-
 
   // Cleanup on disconnect
   socket.on("disconnect", () => {
@@ -100,14 +100,18 @@ io.on("connection", (socket) => {
   });
 });
 
-
 // Continuously read jobs from main platform
 async function pollJobs() {
   while (true) {
-    const jobs = await redis.xReadGroup(JOBS_GROUP, CONSUMER, [{ key: JOBS_STREAM, id: ">" }], {
-      BLOCK: 5000,
-      COUNT: 1,
-    });
+    const jobs = await redis.xReadGroup(
+      JOBS_GROUP,
+      CONSUMER,
+      [{ key: JOBS_STREAM, id: ">" }],
+      {
+        BLOCK: 5000,
+        COUNT: 1,
+      }
+    );
 
     if (!jobs) continue;
 
@@ -122,7 +126,10 @@ async function pollJobs() {
         if (!socket) {
           console.error(`❌ Client ${client} not connected`);
           await redis.xAdd(RESPONSES_STREAM, "*", {
-            response: JSON.stringify({ requestId, error: "Client not connected" }),
+            response: JSON.stringify({
+              requestId,
+              error: "Client not connected",
+            }),
           });
           await redis.xAck(JOBS_STREAM, JOBS_GROUP, message.id);
           continue;
@@ -135,7 +142,6 @@ async function pollJobs() {
   }
 }
 pollJobs();
-
 
 server.listen(PORT, () => {
   console.log(`Socket-io server listening on port ${PORT} as ${CONSUMER}`);
