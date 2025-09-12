@@ -1,18 +1,18 @@
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-import express from "express";
-import http from "http";
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import express from 'express';
+import http from 'http';
 
-import { connectRedis, redis } from "./config/redisClient.js";
-import { ensureGroups } from "./helpers/streamHelpers.js";
-import { initSocket } from "./socket/index.js";
-import { pollJobs } from "./streams/jobsProcessor.js";
-import { createConsumerId } from "./config/constants.js";
+import { connectRedis, redis } from './config/redisClient.js';
+import { ensureGroups } from './helpers/streamHelpers.js';
+import { initSocket } from './socket/index.js';
+import { pollJobs } from './streams/jobsProcessor.js';
+import { createConsumerId } from './config/constants.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, "..", ".env") });
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 const server = http.createServer(app);
@@ -32,9 +32,7 @@ async function start() {
   consumerId = createConsumerId();
   pollJobs(consumerId);
 
-  server.listen(PORT, () =>
-    console.log(`Listening on ${PORT} as ${consumerId}`)
-  );
+  server.listen(PORT, () => console.log(`Listening on ${PORT} as ${consumerId}`));
 }
 
 // Graceful shutdown
@@ -44,29 +42,29 @@ async function shutdown(signal) {
   try {
     // 1. Stop HTTP server
     await new Promise((resolve) => server.close(resolve));
-    console.log("✅ HTTP server closed");
+    console.log('✅ HTTP server closed');
 
     // 2. Stop Socket.IO
     if (io) {
       await io.close();
-      console.log("✅ Socket.IO server closed");
+      console.log('✅ Socket.IO server closed');
     }
 
     // 3. Disconnect Redis
     if (redis && redis.isOpen) {
       await redis.close();
-      console.log("✅ Redis client closed");
+      console.log('✅ Redis client closed');
     }
   } catch (err) {
-    console.error("Error during shutdown:", err);
+    console.error('Error during shutdown:', err);
   } finally {
     process.exit(0);
   }
 }
 
-process.on("SIGINT", () => shutdown("SIGINT"));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 start().catch((err) => {
-  console.error("Failed to start server", err);
+  console.error('Failed to start server', err);
   process.exit(1);
 });

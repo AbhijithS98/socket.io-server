@@ -1,15 +1,13 @@
-import { addResponseToStream, ackJob } from "../helpers/streamHelpers.js";
+import { addResponseToStream, ackJob } from '../helpers/streamHelpers.js';
 
 // Called when a client emits 'job-response'
 export async function handleJobResponse(response) {
   try {
     // store raw response in responses stream
     await addResponseToStream(response);
-    console.log(
-      `📤 Stored response from client-${response.clientId} in stream`
-    );
+    console.log(`📤 Stored response from client-${response.clientId} in stream`);
   } catch (err) {
-    console.error("❌ Failed to add response to stream", err);
+    console.error('❌ Failed to add response to stream', err);
   }
 
   // If requestId and streamId exist, ack the original job
@@ -18,7 +16,7 @@ export async function handleJobResponse(response) {
       await ackJob(response.streamId);
       console.log(`✅ Acked job ${response.requestId}`);
     } catch (err) {
-      console.error("❌ Failed to ack job:", err);
+      console.error('❌ Failed to ack job:', err);
     }
   }
 }
