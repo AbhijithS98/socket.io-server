@@ -15,7 +15,7 @@ export function initSocket(server) {
 
     socket.on('job-response', async (response) => {
       console.log(`📤 Got response from client-${response.clientId}`);
-      // delegate to handlers (doesn't need socket context for now)
+      // delegate to handlers 
       await handleJobResponse(response);
     });
 
