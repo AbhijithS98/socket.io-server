@@ -8,14 +8,13 @@ A Node.js-based server for handling jobs from our main platform Quantiply and di
 
 1. [Project Overview](#project-overview)
 2. [Features](#features)
-3. [Folder Structure](#folder-structure)
-4. [Requirements](#requirements)
-5. [Setup & Installation](#setup--installation)
-6. [Environment Variables](#environment-variables)
-7. [Scripts](#scripts)
-8. [Running the Server](#running-the-server)
-9. [Linting & Formatting](#linting--formatting)
-10. [Contribution Guidelines](#contribution-guidelines)
+3. [Requirements](#requirements)
+4. [Setup & Installation](#setup--installation)
+5. [Environment Variables](#environment-variables)
+6. [Scripts](#scripts)
+7. [Running the Server](#running-the-server)
+8. [Linting & Formatting](#linting--formatting)
+9. [Contribution Guidelines](#contribution-guidelines)
 
 ---
 
@@ -43,27 +42,7 @@ This server acts as a bridge between the main platform and Electron clients:
 
 ---
 
-## Folder Structure
 
-project-root/
-├─ src/
-│ ├─ config/
-│ │ ├─ redisClient.js # Redis client initialization
-│ │ └─ constants.js # Constants like stream/group names
-│ ├─ helpers/
-│ │ └─ streamHelpers.js # Helper functions for Redis Streams
-│ ├─ socket/
-│ │ └─ index.js # Socket.IO initialization & events
-│ ├─ streams/
-│ │ └─ jobsProcessor.js # Polling and processing jobs from Redis
-│ └─ index.js # Entrypoint, server start & shutdown
-├─ .env.example # Example environment variables
-├─ package.json
-├─ .gitignore
-├─ prettier.config.js
-└─ README.md
-
----
 
 ## Requirements
 
@@ -94,16 +73,17 @@ _Optional:_
 ## Environment Variables
 
 _Edit .env with actual values:_
-PORT → server port (default: 3000)
-REDIS_URL → Redis connection URL
+
+- PORT → server port (default: 3000)
+- REDIS_URL → Redis connection URL
 
 ---
 
 ## Scripts
 
-npm run start -> Starts the server (node src/index.js)
-npm run lint -> Checks code style using ESLint
-npm run format -> Auto-formats code using Prettier
+- npm run start -> Starts the server (node src/index.js)
+- npm run lint -> Checks code style using ESLint
+- npm run format -> Auto-formats code using Prettier
 
 ---
 
@@ -131,8 +111,11 @@ _Note: To keep the server running after logout, use:_
 
 - ESLint + Prettier are configured.
 - Before committing, run:
+
   npm run lint
+
   npm run format
+  
   _Recommended: install VS Code ESLint & Prettier extensions to get real-time feedback._
 
 ---
