@@ -35,7 +35,7 @@ export async function pollJobs(consumerId) {
 // === Reclaim stuck jobs ===
 export async function reclaimStuckJobs(consumerId) {
   try {
-    const [nextId, reclaimed] = await redis.xAutoClaim(
+    const result = await redis.xAutoClaim(
       JOBS_STREAM,
       JOBS_GROUP,
       consumerId,
@@ -44,11 +44,15 @@ export async function reclaimStuckJobs(consumerId) {
       { COUNT: RECLAIM_COUNT }
     );
 
+    // Redis client returns object: { nextStartId, messages }
+    const nextId = result.nextStartId;
+    const reclaimed = result.messages || [];
+
     if (reclaimed.length > 0) {
       console.log(`-> [${consumerId}] Reclaimed ${reclaimed.length} stuck jobs`);
 
       for (const msg of reclaimed) {
-        await processJob(msg, consumerId, true);
+        await processJob(msg, consumerId, true); // true = isReclaimed
       }
     }
   } catch (err) {
