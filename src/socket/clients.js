@@ -3,6 +3,8 @@ const clients = new Map(); // clientId => socket
 
 export function registerClient(clientId, socket) {
   clients.set(clientId, socket);
+  // join a room named after clientId so we can address the client cluster-wide
+  socket.join(clientId);
   console.log(`🟢 Registered client: ${clientId}`);
 }
 

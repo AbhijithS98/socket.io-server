@@ -42,8 +42,6 @@ This server acts as a bridge between the main platform and Electron clients:
 
 ---
 
-
-
 ## Requirements
 
 - Node.js v18+
@@ -115,7 +113,7 @@ _Note: To keep the server running after logout, use:_
   npm run lint
 
   npm run format
-  
+
   _Recommended: install VS Code ESLint & Prettier extensions to get real-time feedback._
 
 ---
