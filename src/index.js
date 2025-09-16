@@ -7,7 +7,7 @@ import http from 'http';
 import { connectRedis, redis } from './config/redisClient.js';
 import { ensureGroups, setIoInstance } from './helpers/streamHelpers.js';
 import { initSocket, closeSocketAdapter } from './socket/index.js';
-import { pollJobs, reclaimStuckJobs } from './streams/jobsProcessor.js';
+import { pollJobs, reclaimStuckJobs, stopJobsProcessor } from './streams/jobsProcessor.js';
 import { createConsumerId } from './config/constants.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 let io; // will hold Socket.IO instance
 let consumerId;
+let reclaimInterval;
 
 async function start() {
   await connectRedis();
@@ -36,7 +37,7 @@ async function start() {
   pollJobs(consumerId);
 
   // run reclaim loop every 30s
-  setInterval(() => reclaimStuckJobs(consumerId), 30_000);
+  reclaimInterval = setInterval(() => reclaimStuckJobs(consumerId), 30_000);
 
   server.listen(PORT, () => console.log(`Listening on ${PORT} as ${consumerId}`));
 }
@@ -46,17 +47,26 @@ async function shutdown(signal) {
   console.log(`${signal} received — shutting down gracefully...`);
 
   try {
-    // 1. Stop HTTP server
+    // 1. stop the jobs processor loop
+    stopJobsProcessor();
+
+    // 1. Stop reclaim loop
+    if (reclaimInterval) {
+      clearInterval(reclaimInterval);
+      console.log("✅ Reclaim loop stopped");
+    }
+
+    // 2. Stop HTTP server
     await new Promise((resolve) => server.close(resolve));
     console.log('✅ HTTP server closed');
 
-    // 2. Stop Socket.IO + adapter clients
+    // 3. Stop Socket.IO + adapter clients
     await closeSocketAdapter();
     console.log('✅ Socket.IO & adapter closed');
 
-    // 3. Disconnect Redis used for streams
+    // 4. Disconnect Redis used for streams
     if (redis && redis.isOpen) {
-      await redis.close();
+      await redis.quit();
       console.log('✅ Redis client closed');
     }
   } catch (err) {

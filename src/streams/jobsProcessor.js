@@ -5,12 +5,13 @@ import { processJob} from '../helpers/streamHelpers.js';
 const MIN_IDLE_TIME = 60000; // 60s → jobs older than this can be reclaimed
 const RECLAIM_COUNT = 10;    // no. of jobs reclaim at once
 
+let running = true;
 
 // Main polling loop for new jobs 
 export async function pollJobs(consumerId) {
   console.log('Starting pollJobs with consumer:', consumerId);
 
-  while (true) {
+  while (running) {
     try {
       const jobs = await redis.xReadGroup(JOBS_GROUP, consumerId, [{ key: JOBS_STREAM, id: '>' }], {
         BLOCK: 5000,
@@ -30,6 +31,9 @@ export async function pollJobs(consumerId) {
   }
 }
 
+export function stopJobsProcessor() {
+  running = false;
+}
 
 
 // === Reclaim stuck jobs ===
