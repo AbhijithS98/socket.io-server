@@ -47,10 +47,10 @@ export async function initSocket(server) {
 
 export async function closeSocketAdapter() {
   try {
-    if (io) await io.close();
-    if (pubClient && pubClient.isOpen) await pubClient.disconnect();
-    if (subClient && subClient.isOpen) await subClient.disconnect();
+    if (io) {
+      await io.close(); // closes adapter + pub/sub redis clients
+    }
   } catch (err) {
-    console.error('Error closing socket adapter clients', err);
+    console.error('Error closing socket adapter', err);
   }
 }
