@@ -3,7 +3,7 @@ import { registerClient, unregisterClientBySocket } from './clients.js';
 import { handleJobResponse } from './handlers.js';
 
 export async function initSocket(server) {
-  io = new Server(server, {
+  const io = new Server(server, {
     cors: { origin: '*' },
     maxHttpBufferSize: 10e6,
   });
