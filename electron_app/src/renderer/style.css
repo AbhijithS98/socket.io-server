@@ -1,0 +1,60 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.status-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #ccc;
+  padding: 8px 16px;
+  border-radius: 12px;
+}
+
+.status-indicator {
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background-color: red; /* default */
+}
+
+.status-running .status-indicator {
+  background-color: #28c940;
+}
+
+#toggle-server-btn {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.logo-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.logo {
+  height: 28px;
+}
+
+.public-url {
+  font-size: 16px;
+  margin: 16px 0;
+}

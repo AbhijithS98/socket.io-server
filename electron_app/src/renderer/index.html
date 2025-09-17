@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' https://api64.ipify.org; script-src 'self'"
+    />
+    <title>Quantiply</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="status-box">
+          <span class="status-indicator" id="status-indicator"></span>
+          <span id="status-text">Stopped</span>
+        </div>
+        <button id="toggle-server-btn">Start Server</button>
+        <div class="logo-box">
+          <img src="assets/quantiply-logo.jpg" alt="" class="logo" />
+          <h2>Quantiply</h2>
+        </div>
+      </div>
+
+      <div class="public-url">
+        Your client ID:  <span id="public-url">Fetching...</span>
+      </div>
+      
+     <hr />
+
+
+    </div>
+
+  <script src="./renderer.js"></script>
+  </body>
+</html>
