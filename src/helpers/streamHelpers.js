@@ -1,5 +1,5 @@
 import { redis } from '../config/redisClient.js';
-import { JOBS_STREAM, JOBS_GROUP, RESPONSES_STREAM, RESPONSES_GROUP } from '../config/constants.js';
+import { JOBS_STREAM, JOBS_GROUP, RESPONSES_STREAM } from '../config/constants.js';
 import { getClientSocket } from '../socket/clients.js';
 
 export async function ensureGroups() {
@@ -9,17 +9,6 @@ export async function ensureGroups() {
   } catch (err) {
     if ((err.message || '').includes('BUSYGROUP')) {
       console.log(`Group ${JOBS_GROUP} already exists`);
-    } else throw err;
-  }
-
-  try {
-    await redis.xGroupCreate(RESPONSES_STREAM, RESPONSES_GROUP, '0', {
-      MKSTREAM: true,
-    });
-    console.log(`Created group ${RESPONSES_GROUP}`);
-  } catch (err) {
-    if ((err.message || '').includes('BUSYGROUP')) {
-      console.log(`Group ${RESPONSES_GROUP} already exists`);
     } else throw err;
   }
 }
