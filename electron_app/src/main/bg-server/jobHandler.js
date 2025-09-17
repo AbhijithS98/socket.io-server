@@ -1,6 +1,7 @@
 const axios = require("axios");
 const getResponseType = require("./utils/resType");
 const { emitJobResponse } = require("./socketClient");
+const { logToFile } = require("./utils/logger");
 
 async function handleJob(job) {
   console.log("-> Received job:", job);
@@ -20,6 +21,9 @@ async function handleJob(job) {
     if (acceptHeader.includes("csv") || acceptHeader.includes("zip")) {
       axiosConfig.responseType = "arraybuffer";
     }
+
+    // === Log request ===
+    logToFile(`REQUEST [${requestId}] -> ${method} ${endpoint} | Headers: ${JSON.stringify(headers)} | Payload: ${JSON.stringify(payload)}`);
 
     const res = await axios(axiosConfig);
     const contentType = getResponseType(res.headers["content-type"] || "");
@@ -53,6 +57,9 @@ async function handleJob(job) {
         encoding = Buffer.isBuffer(res.data) ? "base64" : "utf8";
     }
 
+    // === Log response ===
+    logToFile(`RESPONSE [${requestId}] <- Status: ${res.status} | Content-Type: ${contentType} | Headers: ${JSON.stringify(res.headers)} `);
+    
     emitJobResponse({
       requestId,
       streamId,
