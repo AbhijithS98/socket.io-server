@@ -2,11 +2,6 @@ import { redis } from '../config/redisClient.js';
 import { JOBS_STREAM, JOBS_GROUP, RESPONSES_STREAM, RESPONSES_GROUP } from '../config/constants.js';
 import { getClientSocket } from '../socket/clients.js';
 
-let ioInstance = null;
-export function setIoInstance(i) {
-  ioInstance = i;
-}
-
 export async function ensureGroups() {
   try {
     await redis.xGroupCreate(JOBS_STREAM, JOBS_GROUP, '0', { MKSTREAM: true });
@@ -45,30 +40,18 @@ export async function processJob(message, consumerId, isReclaimed = false) {
   console.log(`📥 [${consumerId}] Got ${isReclaimed ? 'reclaimed' : 'new'} job:`, job);
 
   const { client, requestId } = job;
-  // const socket = getClientSocket(client);
-
-  if (!ioInstance) {
-    console.error('❌ Socket.IO instance not set yet');
-    await addResponseToStream({ requestId, error: 'Socket.IO not initialized' });
-    await ackJob(message.id);
-    return;
-  }
+  const socket = getClientSocket(client);
 
   try {
-    // Check presence cluster-wide
-    const sockets = await ioInstance.in(client).allSockets();
-    if (!sockets || sockets.size === 0) {
-      console.error(`❌ Client ${client} not connected`);
-      await addResponseToStream({
-        requestId,
-        error: isReclaimed ? 'Client not connected (reclaimed)' : 'Client not connected',
-      });
+    if (!socket) {
+      console.warn(`⚠️ Skipping job ${requestId}: client ${client} not connected`);
+      // Ack immediately to clean up this group's pending list
       await ackJob(message.id);
       return;
     }
 
-    // deliver to the client's room (adapter will route to correct server)
-    ioInstance.to(client).emit('perform-job', { ...job, streamId: message.id });
+    // forward job to client and include streamId for ack
+    socket.emit('perform-job', { ...job, streamId: message.id });
 
     console.log(
       `➡️ Forwarded ${isReclaimed ? 'reclaimed ' : ''}job ${requestId} to client ${client}`,
