@@ -1,18 +1,12 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import "./config/env.js";
 import express from 'express';
 import http from 'http';
 
 import { connectRedis, redis } from './config/redisClient.js';
-import { ensureGroups, setIoInstance } from './helpers/streamHelpers.js';
-import { initSocket, closeSocketAdapter } from './socket/index.js';
+import { ensureGroups } from './helpers/streamHelpers.js';
+import { initSocket } from './socket/index.js';
 import { pollJobs, reclaimStuckJobs, stopJobsProcessor } from './streams/jobsProcessor.js';
 import { createConsumerId } from './config/constants.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 const server = http.createServer(app);
@@ -26,11 +20,8 @@ async function start() {
   await connectRedis();
   await ensureGroups();
 
-  // Start Socket.IO (await because adapter connects to Redis)
+  // Start Socket.IO
   io = await initSocket(server);
-
-  // Provide io to stream helpers so processJob can use io.in(...).allSockets() and io.to(...)
-  setIoInstance(io);
 
   // start consumer loop (non-blocking)
   consumerId = createConsumerId();
@@ -53,18 +44,20 @@ async function shutdown(signal) {
     // 1. Stop reclaim loop
     if (reclaimInterval) {
       clearInterval(reclaimInterval);
-      console.log("✅ Reclaim loop stopped");
+      console.log('✅ Reclaim loop stopped');
     }
 
     // 2. Stop HTTP server
     await new Promise((resolve) => server.close(resolve));
     console.log('✅ HTTP server closed');
 
-    // 3. Stop Socket.IO + adapter clients
-    await closeSocketAdapter();
-    console.log('✅ Socket.IO & adapter closed');
+    // 3. Stop Socket.IO
+    if (io) {
+      await io.close();
+      console.log('✅ Socket.IO server closed');
+    }
 
-    // 4. Disconnect Redis used for streams
+    // 4. Disconnect Redis
     if (redis && redis.isOpen) {
       await redis.quit();
       console.log('✅ Redis client closed');

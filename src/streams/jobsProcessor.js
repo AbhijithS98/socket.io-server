@@ -1,13 +1,13 @@
 import { redis } from '../config/redisClient.js';
 import { JOBS_GROUP, JOBS_STREAM } from '../config/constants.js';
-import { processJob} from '../helpers/streamHelpers.js';
+import { processJob } from '../helpers/streamHelpers.js';
 
 const MIN_IDLE_TIME = 60000; // 60s → jobs older than this can be reclaimed
-const RECLAIM_COUNT = 10;    // no. of jobs reclaim at once
+const RECLAIM_COUNT = 10; // no. of jobs reclaim at once
 
 let running = true;
 
-// Main polling loop for new jobs 
+// Main polling loop for new jobs
 export async function pollJobs(consumerId) {
   console.log('Starting pollJobs with consumer:', consumerId);
 
@@ -20,7 +20,7 @@ export async function pollJobs(consumerId) {
       if (!jobs) continue;
 
       for (const stream of jobs) {
-        for (const message of stream.messages) { 
+        for (const message of stream.messages) {
           await processJob(message, consumerId, false);
         }
       }
@@ -31,11 +31,6 @@ export async function pollJobs(consumerId) {
   }
 }
 
-export function stopJobsProcessor() {
-  running = false;
-}
-
-
 // === Reclaim stuck jobs ===
 export async function reclaimStuckJobs(consumerId) {
   try {
@@ -45,7 +40,7 @@ export async function reclaimStuckJobs(consumerId) {
       consumerId,
       MIN_IDLE_TIME,
       '0-0',
-      { COUNT: RECLAIM_COUNT }
+      { COUNT: RECLAIM_COUNT },
     );
 
     // Redis client returns object: { nextStartId, messages }
@@ -62,4 +57,8 @@ export async function reclaimStuckJobs(consumerId) {
   } catch (err) {
     console.error('reclaimStuckJobs error:', err);
   }
+}
+
+export async function stopJobsProcessor() {
+  running = false;
 }
