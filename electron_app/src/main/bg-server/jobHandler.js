@@ -23,7 +23,7 @@ async function handleJob(job) {
     }
 
     // === Log request ===
-    logToFile(`REQUEST [${requestId}] -> ${method} ${endpoint} | Headers: ${JSON.stringify(headers)} | Payload: ${JSON.stringify(payload)}`);
+    logToFile(`REQUEST [${requestId}] -> ${method} ${endpoint} | Headers: ${JSON.stringify(headers)}`);
 
     const res = await axios(axiosConfig);
     const contentType = getResponseType(res.headers["content-type"] || "");
@@ -58,7 +58,7 @@ async function handleJob(job) {
     }
 
     // === Log response ===
-    logToFile(`RESPONSE [${requestId}] <- Status: ${res.status} | Content-Type: ${contentType} | Headers: ${JSON.stringify(res.headers)} `);
+    logToFile(`RESPONSE [${requestId}] <- Status: ${res.status} | Content-Type: ${contentType}`);
     
     emitJobResponse({
       requestId,
@@ -72,6 +72,7 @@ async function handleJob(job) {
     });
   } catch (err) {
     console.error("-> Error in perform-job:", err.message);
+    logToFile(`ERROR [${requestId}] <- errorCode: ${err.code} | errorMessage: ${err.message} `);
 
     const errorResponse = {
       requestId,

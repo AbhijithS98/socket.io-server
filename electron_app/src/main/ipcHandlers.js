@@ -1,5 +1,8 @@
 const os = require("os");
+const fs = require("fs");
 const { startServer, stopServer, isRunning } = require("./bg-server/server");
+const { logFile } = require("./bg-server/utils/logger");
+
 
 module.exports = function registerIpcHandlers(ipcMain) {
   // Start server
@@ -18,7 +21,17 @@ module.exports = function registerIpcHandlers(ipcMain) {
     return isRunning();
   });
 
-  // Example: get local IP
+  // Read logs from file
+  ipcMain.handle("read-logs", async () => {
+    try {
+      return fs.readFileSync(logFile, "utf8");
+    } catch(err) {
+      console.log("error in reading file:", err)
+      return 'No logs yet.\n';
+    }
+  });
+
+  // Get local IP
   ipcMain.handle("get-local-ip", () => {
     const interfaces = os.networkInterfaces();
     for (const name in interfaces) {
