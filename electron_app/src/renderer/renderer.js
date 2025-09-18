@@ -2,21 +2,29 @@ const toggleBtn = document.getElementById("toggle-server-btn");
 const statusBox = document.querySelector(".status-box");
 const statusText = document.getElementById("status-text");
 const publicUrlSpan = document.getElementById("public-url");
+const logBox = document.getElementById("logBox");
 
 let isRunning = false;
 let tunnelId = '';
 
-// async function getLocalIp() {
-//   let localIp = await window.api.getLocalIp();
-//   console.log("local IP : ",localIp);
-// }
+// Load existing logs on startup
+(async () => {
+  const initialLogs = await window.api.readLogs();
+  logBox.textContent = initialLogs;
+  logBox.scrollTop = logBox.scrollHeight;
+})();
+
+// Listen for logs pushed from main
+window.api.onLog((logLine) => {
+  logBox.textContent += logLine;
+  logBox.scrollTop = logBox.scrollHeight; // auto-scroll to bottom
+});
 
 async function updateUI() {
   isRunning = await window.api.getServerStatus();
   if (isRunning) {
     statusBox.classList.add("status-running");
     statusText.textContent = "Running";
-    // const url = await window.api.getPublicUrl();
     if (tunnelId) {
       publicUrlSpan.textContent = tunnelId;
     }
@@ -28,18 +36,6 @@ async function updateUI() {
     toggleBtn.textContent = "Start Server";
   }
 }
-
-
-// async function fetchPublicIP() {
-//   try {
-//     const res = await fetch("https://api64.ipify.org?format=json");
-//     const data = await res.json();
-//     publicIp = data.ip;
-//     publicIpSpan.textContent = data.ip;
-//   } catch (err) {
-//     publicIpSpan.textContent = "Error fetching IP";
-//   }
-// }
 
 
 // Button click logic
@@ -54,7 +50,26 @@ toggleBtn.addEventListener('click', async () => {
 });
 
 
+
+// async function fetchPublicIP() {
+//   try {
+//     const res = await fetch("https://api64.ipify.org?format=json");
+//     const data = await res.json();
+//     publicIp = data.ip;
+//     publicIpSpan.textContent = data.ip;
+//   } catch (err) {
+//     publicIpSpan.textContent = "Error fetching IP";
+//   }
+// }
+
+// async function getLocalIp() {
+//   let localIp = await window.api.getLocalIp();
+//   console.log("local IP : ",localIp);
+// }
+
+
+
+
 // Initialize UI
-// getLocalIp();
 updateUI();
 
