@@ -2,9 +2,11 @@ const axios = require("axios");
 const getResponseType = require("./utils/resType");
 const { emitJobResponse } = require("./socketClient");
 const { logCommon } = require("./utils/logger");
+const { sendLogToRenderer } = require("./utils/logRenderer")
 
 async function handleJob(job) {
   console.log("-> Received job:", job);
+  sendLogToRenderer("New Job recieved")
 
   const { requestId, client, streamId, endpoint, method, headers, payload } = job;
 

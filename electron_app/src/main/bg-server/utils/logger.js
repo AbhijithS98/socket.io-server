@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { BrowserWindow } = require("electron");
+const { sendLogToRenderer } = require("./logRenderer")
 
 let publicIP = "::1"; // default fallback
 
@@ -45,11 +46,13 @@ function logCommon(entry) {
   const filePath = getLogFilePath();
   fs.appendFileSync(filePath, line + "\n", "utf8");
  
-  //send NEW logs to renderer 
-  const win = BrowserWindow.getAllWindows()[0];
-  if (win) {
-    win.webContents.send("activity-log", line);
-  }
+  // //send NEW logs to renderer 
+  // const win = BrowserWindow.getAllWindows()[0];
+  // if (win) {
+  //   win.webContents.send("activity-log", line);
+  // }
+
+  sendLogToRenderer(line);
 
   return line;
 }
@@ -57,22 +60,4 @@ function logCommon(entry) {
 module.exports = { logCommon, fetchPublicIP };
 
 
-// const logFile = path.join(__dirname, "../../../logs/axios.log");
-// fs.mkdirSync(path.dirname(logFile), { recursive: true });
-
-// function logToFile(message) {
-//   const timestamp = new Date().toISOString();
-//   const logLine = `[${timestamp}] ${message}\n`;
-
-//   // Write to file
-//   fs.appendFileSync(logFile, logLine);
-
-//   // Send log to renderer if a window exists
-//   const win = BrowserWindow.getAllWindows()[0];
-//   if (win) {
-//     win.webContents.send("axios-log", logLine);
-//   }
-// }
-
-// module.exports = { logToFile, logFile };
 
