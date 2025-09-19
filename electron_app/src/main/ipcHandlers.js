@@ -21,15 +21,15 @@ module.exports = function registerIpcHandlers(ipcMain) {
     return isRunning();
   });
 
-  // Read logs from file
-  ipcMain.handle("read-logs", async () => {
-    try {
-      return fs.readFileSync(logFile, "utf8");
-    } catch(err) {
-      console.log("error in reading file:", err)
-      return 'No logs yet.\n';
-    }
-  });
+  // // Read logs from file
+  // ipcMain.handle("read-logs", async () => {
+  //   try {
+  //     return fs.readFileSync(logFile, "utf8");
+  //   } catch(err) {
+  //     console.log("error in reading file:", err)
+  //     return 'No logs yet.\n';
+  //   }
+  // });
 
   // Get local IP
   ipcMain.handle("get-local-ip", () => {

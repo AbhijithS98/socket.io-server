@@ -1,8 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { stopServer } = require('./bg-server/server');
-
-// Import IPC handlers
 const registerIpcHandlers = require("./ipcHandlers");
 
 let mainWindow;
@@ -26,8 +24,12 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  createWindow();
   registerIpcHandlers(ipcMain); // all IPC handlers registered here
+  createWindow();
+
+  app.on("activate", () => {
+    if (mainWindow === null) createWindow();
+  });
 });
 
 
@@ -39,6 +41,3 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on("activate", () => {
-  if (mainWindow === null) createWindow();
-});
