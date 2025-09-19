@@ -7,16 +7,9 @@ const logBox = document.getElementById("logBox");
 let isRunning = false;
 let tunnelId = '';
 
-// Load existing logs on startup
-(async () => {
-  const initialLogs = await window.api.readLogs();
-  logBox.textContent = initialLogs;
-  logBox.scrollTop = logBox.scrollHeight;
-})();
-
 // Listen for logs pushed from main
 window.api.onLog((logLine) => {
-  logBox.textContent += logLine;
+  logBox.textContent += logLine + "\n";
   logBox.scrollTop = logBox.scrollHeight; // auto-scroll to bottom
 });
 
@@ -36,7 +29,6 @@ async function updateUI() {
     toggleBtn.textContent = "Start Server";
   }
 }
-
 
 // Button click logic
 toggleBtn.addEventListener('click', async () => {

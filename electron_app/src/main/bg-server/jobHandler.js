@@ -1,10 +1,12 @@
 const axios = require("axios");
 const getResponseType = require("./utils/resType");
 const { emitJobResponse } = require("./socketClient");
-const { logToFile } = require("./utils/logger");
+const { logCommon } = require("./utils/logger");
+const { sendLogToRenderer } = require("./utils/logRenderer")
 
 async function handleJob(job) {
   console.log("-> Received job:", job);
+  sendLogToRenderer("New Job recieved")
 
   const { requestId, client, streamId, endpoint, method, headers, payload } = job;
 
@@ -15,15 +17,13 @@ async function handleJob(job) {
       headers,
       data: payload,
       timeout: 30000,
+      httpVersion: "1.1",
     };
 
     const acceptHeader = headers?.Accept || headers?.accept || "";
     if (acceptHeader.includes("csv") || acceptHeader.includes("zip")) {
       axiosConfig.responseType = "arraybuffer";
     }
-
-    // === Log request ===
-    logToFile(`REQUEST [${requestId}] -> ${method} ${endpoint} | Headers: ${JSON.stringify(headers)}`);
 
     const res = await axios(axiosConfig);
     const contentType = getResponseType(res.headers["content-type"] || "");
@@ -55,24 +55,51 @@ async function handleJob(job) {
           ? res.data.toString("base64")
           : res.data;
         encoding = Buffer.isBuffer(res.data) ? "base64" : "utf8";
-    }
+      }
 
-    // === Log response ===
-    logToFile(`RESPONSE [${requestId}] <- Status: ${res.status} | Content-Type: ${contentType}`);
-    
-    emitJobResponse({
-      requestId,
-      streamId,
-      clientId: client,
-      status: res.status,
-      headers: res.headers,
-      body: serializedBody,
-      encoding,
+      // ✅ Log outgoing request like "common" format
+      let contentLength;
+
+      if (typeof serializedBody === "string") {
+        // UTF-8 string or base64 string
+        contentLength = Buffer.byteLength(serializedBody, "utf8");
+      } else if (typeof serializedBody === "object" && serializedBody !== null) {
+        // Plain JS object (JSON)
+        contentLength = Buffer.byteLength(JSON.stringify(serializedBody), "utf8");
+      } else {
+        contentLength = 0; // fallback
+      }
+
+      logCommon({
+        method,
+        url: endpoint,
+        httpVersion: "1.1",
+        status: res.status,
+        contentLength
+      });
+
+      emitJobResponse({
+        requestId,
+        streamId,
+        clientId: client,
+        status: res.status,
+        headers: res.headers,
+        body: serializedBody,
+        encoding,
       contentType,
     });
+    
   } catch (err) {
     console.error("-> Error in perform-job:", err.message);
-    logToFile(`ERROR [${requestId}] <- errorCode: ${err.code} | errorMessage: ${err.message} `);
+
+    // ✅ Log failed request in common format (status = 500 if unknown)
+    logCommon({
+      method,
+      url: endpoint,
+      httpVersion: "1.1",
+      status: err.response?.status || 500,
+      contentLength
+    });
 
     const errorResponse = {
       requestId,
