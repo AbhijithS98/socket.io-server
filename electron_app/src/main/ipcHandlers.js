@@ -1,10 +1,31 @@
 const os = require("os");
 const fs = require("fs");
+const path = require("path");
+const { app } = require("electron");
 const { startServer, stopServer, isRunning } = require("./bg-server/server");
-const { logFile } = require("./bg-server/utils/logger");
 
+const configPath = path.join(app.getPath("userData"), "config.json");
 
-module.exports = function registerIpcHandlers(ipcMain) {
+function readConfig() {
+  try {
+    if (fs.existsSync(configPath)) {
+      return JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    }
+  } catch (err) {
+    console.error("Error reading config:", err);
+  }
+  return {};
+}
+
+function writeConfig(data) {
+  try {
+    fs.writeFileSync(configPath, JSON.stringify(data, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Error writing config:", err);
+  }
+}
+
+module.exports = function registerIpcHandlers(ipcMain, mainWindow) {
   // Start server
   ipcMain.handle("start-server", async () => {
     const clientId = await startServer();
@@ -21,15 +42,26 @@ module.exports = function registerIpcHandlers(ipcMain) {
     return isRunning();
   });
 
-  // // Read logs from file
-  // ipcMain.handle("read-logs", async () => {
-  //   try {
-  //     return fs.readFileSync(logFile, "utf8");
-  //   } catch(err) {
-  //     console.log("error in reading file:", err)
-  //     return 'No logs yet.\n';
-  //   }
-  // });
+  // Page navigation
+  ipcMain.handle("load-page", (event, page) => {
+    if (mainWindow) {
+      mainWindow.loadFile(path.join(__dirname, `../renderer/${page}`));
+    }
+  });
+
+  // Save API Key
+  ipcMain.handle("save-api-key", (event, key) => {
+    const cfg = readConfig();
+    cfg.apiKey = key;
+    writeConfig(cfg);
+    return true;
+  });
+
+  // Get API Key
+  ipcMain.handle("get-api-key", () => {
+    const cfg = readConfig();
+    return cfg.apiKey || null;
+  });
 
   // Get local IP
   ipcMain.handle("get-local-ip", () => {
@@ -43,4 +75,14 @@ module.exports = function registerIpcHandlers(ipcMain) {
     }
     return null;
   });
+
+  // // Read logs from file
+  // ipcMain.handle("read-logs", async () => {
+  //   try {
+  //     return fs.readFileSync(logFile, "utf8");
+  //   } catch(err) {
+  //     console.log("error in reading file:", err)
+  //     return 'No logs yet.\n';
+  //   }
+  // });
 };

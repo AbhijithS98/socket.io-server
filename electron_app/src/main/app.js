@@ -15,17 +15,19 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-
+  
+  // Open DevTools automatically
+  mainWindow.webContents.openDevTools();
   mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
-
+  
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
 app.whenReady().then(() => {
-  registerIpcHandlers(ipcMain); // all IPC handlers registered here
   createWindow();
+  registerIpcHandlers(ipcMain, mainWindow); // all IPC handlers registered here
 
   app.on("activate", () => {
     if (mainWindow === null) createWindow();
