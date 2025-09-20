@@ -1,5 +1,5 @@
 {
-  "name": "my-electron-app",
+  "name": "quantiply",
   "version": "1.0.0",
   "description": "Hello World!",
   "main": "src/main/app.js",

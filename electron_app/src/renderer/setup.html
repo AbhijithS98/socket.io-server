@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' https://api64.ipify.org; script-src 'self'"
+    />
+    <title>Quantiply - Setup</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="status-box">
+          <span class="status-indicator stopped"></span>
+          <span id="status-text">Setup Mode</span>
+        </div>
+        <div class="logo-box">
+          <img src="assets/quantiply-logo.jpg" alt="" class="logo" />
+          <h2>Quantiply</h2>
+        </div>
+      </div>
+
+      <div class="client-info">
+        <h3>Enter Your API Key</h3>
+        <form id="apiForm" class="setup-form">
+          <input
+            type="text"
+            id="apiKeyInput"
+            placeholder="Paste your API key here"
+            required
+          />
+          <button type="submit">Save API Key</button>
+        </form>
+      </div>
+
+      <div class="logs">
+        <h3>Notes</h3>
+        <p>
+          Your API key will be securely stored on this device and used
+          automatically when starting the background server.
+        </p>
+      </div>
+      <button id="cancelBtn">Cancel</button>
+      <hr />
+    </div>
+
+    <script src="./setup.js"></script>
+  </body>
+</html>
