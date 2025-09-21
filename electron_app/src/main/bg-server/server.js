@@ -3,11 +3,9 @@ require("dotenv").config({ path: path.join(__dirname, "../../../.env") });
 const createExpressApp = require("./expressApp");
 const { connectSocket, disconnectSocket } = require("./socketClient");
 const handleJob = require("./jobHandler");
-const { fetchPublicIP } = require("./utils/logger")
 const { sendLogToRenderer } = require("./utils/logRenderer")
 
 let serverInstance = null;
-
 
 function startServer(apiKey) {
   if (serverInstance) return;
@@ -17,10 +15,7 @@ function startServer(apiKey) {
 
   serverInstance = app.listen(PORT, async () => {
     console.log(`Local Express running at http://localhost:${PORT}`);
-    
     sendLogToRenderer("Started background server")
-    // fetch machine's public IP at startup
-    await fetchPublicIP();
   });
 
   connectSocket(process.env.IO_SERVER_URL, apiKey, handleJob);
