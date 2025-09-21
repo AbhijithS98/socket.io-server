@@ -7,10 +7,10 @@ const { fetchPublicIP } = require("./utils/logger")
 const { sendLogToRenderer } = require("./utils/logRenderer")
 
 let serverInstance = null;
-const clientId = "clientA";
 
-function startServer() {
-  if (serverInstance) return clientId;
+
+function startServer(apiKey) {
+  if (serverInstance) return;
 
   const app = createExpressApp();
   const PORT = process.env.PORT || 3050;
@@ -23,9 +23,9 @@ function startServer() {
     await fetchPublicIP();
   });
 
-  connectSocket(process.env.IO_SERVER_URL, clientId, handleJob);
+  connectSocket(process.env.IO_SERVER_URL, apiKey, handleJob);
 
-  return clientId;
+  return;
 }
 
 function stopServer() {

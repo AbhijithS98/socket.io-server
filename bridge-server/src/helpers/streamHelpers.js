@@ -7,7 +7,9 @@ export async function ensureGroups() {
     await redis.xGroupCreate(JOBS_STREAM, JOBS_GROUP, '0', { MKSTREAM: true });
     console.log(`Created group ${JOBS_GROUP}`);
   } catch (err) {
-    if ((err.message || '').includes('BUSYGROUP')) {
+    const msg = err.message || '';
+    if (msg.includes('BUSYGROUP')) {
+      // Group already exists → safe to ignore
       console.log(`Group ${JOBS_GROUP} already exists`);
     } else throw err;
   }
