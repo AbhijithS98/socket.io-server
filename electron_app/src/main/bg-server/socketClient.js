@@ -12,8 +12,10 @@ function connectSocket(io_server_url, apiKey, onJobReceived) {
 
   socket.on("connect", () => {
     console.log("-> Connected to socket-io server with id:", socket.id);
-    sendLogToRenderer(`Connected to server with id ${socket.id}`)
-    socket.emit("register", apiKey);
+    
+    socket.emit("register", apiKey, (data) => {
+      sendLogToRenderer(`Connected to server : ${data.ip}`)
+    });
   });
 
   socket.on("perform-job", onJobReceived);

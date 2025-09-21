@@ -3,17 +3,6 @@ const path = require("path");
 const { BrowserWindow } = require("electron");
 const { sendLogToRenderer } = require("./logRenderer")
 
-let publicIP = "::1"; // default fallback
-
-async function fetchPublicIP() {
-  try {
-    const res = await fetch("https://api.ipify.org"); 
-    const ip = await res.text(); 
-    publicIP = ip.trim();
-  } catch (err) {
-    console.log("Error fetching IP");
-  }
-}
 
 // Get today's log file
 function getLogFilePath() {
@@ -34,10 +23,8 @@ function formatDateCLF(date = new Date()) {
 
 // Format log line 
 function formatCommonLog({ method, url, httpVersion, status, contentLength }) {
-  const remoteAddr = publicIP || "::1";
-  const remoteUser = "-";
   const date = formatDateCLF();
-  return `${remoteAddr} - ${remoteUser} [${date}] "${method.toUpperCase()} ${url} HTTP/${httpVersion}" ${status} ${contentLength}`;
+  return `[${date}] "${method.toUpperCase()} ${url} HTTP/${httpVersion}" ${status} ${contentLength}`;
 }
 
 // Write log line to daily log file + send live to UI
@@ -46,18 +33,13 @@ function logCommon(entry) {
   const filePath = getLogFilePath();
   fs.appendFileSync(filePath, line + "\n", "utf8");
  
-  // //send NEW logs to renderer 
-  // const win = BrowserWindow.getAllWindows()[0];
-  // if (win) {
-  //   win.webContents.send("activity-log", line);
-  // }
-
+  // send NEW logs to renderer 
   sendLogToRenderer(line);
 
   return line;
 }
 
-module.exports = { logCommon, fetchPublicIP };
+module.exports = { logCommon };
 
 
 

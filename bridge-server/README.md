@@ -9,12 +9,13 @@ A Node.js-based server for handling jobs from our main platform Quantiply and di
 1. [Project Overview](#project-overview)
 2. [Features](#features)
 3. [Requirements](#requirements)
-4. [Setup & Installation](#setup--installation)
+4. [Setup & Installation](#setup-installation)
 5. [Environment Variables](#environment-variables)
 6. [Scripts](#scripts)
 7. [Running the Server](#running-the-server)
-8. [Linting & Formatting](#linting--formatting)
+8. [Linting & Formatting](#linting-formatting)
 9. [Contribution Guidelines](#contribution-guidelines)
+10. [Running Multiple Instances](#running-multiple-instances)
 
 ---
 
@@ -72,9 +73,11 @@ _Optional:_
 
 _Edit .env with actual values:_
 
-- PORT → server port (default: 3000)
-- REDIS_URL → Redis connection URL
-
+- PORT         → Port on which the Socket.IO server will run (eg: 3000)
+- REDIS_URL    → Redis connection URL 
+- INSTANCE_ID  → Unique identifier for this server instance. Used to create dynamic Redis consumer groups (eg: io-server-1)
+ 
+_Note: For production, each instance must have a unique `INSTANCE_ID` (e.g: io-server-1, io-server-2) so that jobs are correctly claimed and processed._
 ---
 
 ## Scripts
@@ -131,5 +134,26 @@ _Note: To keep the server running after logout, use:_
 - Commit and push: git commit -m "Feature: Add xyz"
 
 - Open a Pull Request
+
+---
+
+## Running Multiple Instances
+
+- You can run multiple `io-server` instances to scale horizontally.  
+- Each instance must have a unique `INSTANCE_ID` in its `.env` file (or passed as an env variable).  
+- Use Nginx (or any reverse proxy) to distribute client connections across instances.
+
+_Example:_
+
+# Instance 1
+- PORT=3000
+- INSTANCE_ID=io-server-1
+
+# Instance 2
+- PORT=3001
+- INSTANCE_ID=io-server-2
+
+_Note: Both instances share the same Redis streams but track acknowledgments independently.The instance that has the correct client connected processes the job; others skip and ack_
+
 
 ## _Follow the existing code style to keep the codebase consistent._
