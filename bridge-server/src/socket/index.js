@@ -9,12 +9,12 @@ export async function initSocket(server) {
   });
 
   io.on('connection', (socket) => {
-    console.log('✅ Electron client connected:', socket.id);
+    console.log('✅ Electron client connected with socket id:', socket.id);
 
-    socket.on('register', (clientId) => registerClient(clientId, socket));
+    socket.on('register', (apiKey) => registerClient(apiKey, socket));
 
     socket.on('job-response', async (response) => {
-      console.log(`📤 Got response from client-${response.clientId}`);
+      console.log(`📤 Got response from client: ${response.clientId}`);
       // delegate to handlers
       await handleJobResponse(response);
     });

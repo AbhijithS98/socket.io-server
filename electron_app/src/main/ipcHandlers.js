@@ -27,8 +27,8 @@ function writeConfig(data) {
 
 module.exports = function registerIpcHandlers(ipcMain, mainWindow) {
   // Start server
-  ipcMain.handle("start-server", async () => {
-    const clientId = await startServer();
+  ipcMain.handle("start-server", async (event,apiKey) => {
+    const clientId = await startServer(apiKey);
     return clientId;
   });
 

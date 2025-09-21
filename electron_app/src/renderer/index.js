@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const setUpBtn = document.getElementById("setupBtn");
 
   let isRunning = false;
+  let apiKey = '';
 
   // Listen for logs pushed from main
   window.api.onLog((logLine) => {
@@ -28,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadApiKey() {
-    const apiKey = await window.api.getApiKey();
+    apiKey = await window.api.getApiKey();
     if (apiKey) {
       apiKeySpan.textContent = apiKey;
     } else {
@@ -42,7 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isRunning) {
         await window.api.stopServer();
       } else {
-        tunnelId = await window.api.startServer();
+        if(apiKey){
+          await window.api.startServer(apiKey);
+        }
+        // tunnelId = await window.api.startServer();
       }
       updateUI();
     });
