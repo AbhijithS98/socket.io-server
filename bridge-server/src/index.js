@@ -7,6 +7,7 @@ import { ensureGroups } from './helpers/streamHelpers.js';
 import { initSocket } from './socket/index.js';
 import { pollJobs, reclaimStuckJobs, stopJobsProcessor } from './streams/jobsProcessor.js';
 import { createConsumerId } from './config/constants.js';
+import { logger } from "./config/logger.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -17,6 +18,7 @@ let consumerId;
 let reclaimInterval;
 
 async function start() {
+   try {
   await connectRedis();
   await ensureGroups();
 
@@ -30,12 +32,18 @@ async function start() {
   // run reclaim loop every 30s
   reclaimInterval = setInterval(() => reclaimStuckJobs(consumerId), 30_000);
 
-  server.listen(PORT, () => console.log(`Listening on ${PORT} as ${consumerId}`));
+  server.listen(PORT, () => {
+      logger.info(`Listening on ${PORT} as consumer ${consumerId}`);
+    });
+    } catch (err) {
+    logger.error(`Failed to start server: ${err.message}`, { stack: err.stack });
+    process.exit(1);
+  }
 }
 
 // Graceful shutdown
 async function shutdown(signal) {
-  console.log(`${signal} received — shutting down gracefully...`);
+  logger.info(`${signal} received — shutting down gracefully...`);
 
   try {
     // 1. stop the jobs processor loop
@@ -44,26 +52,26 @@ async function shutdown(signal) {
     // 1. Stop reclaim loop
     if (reclaimInterval) {
       clearInterval(reclaimInterval);
-      console.log('✅ Reclaim loop stopped');
+      logger.info('Reclaim loop stopped');
     }
 
     // 2. Stop HTTP server
     await new Promise((resolve) => server.close(resolve));
-    console.log('✅ HTTP server closed');
+    logger.info('HTTP server closed');
 
     // 3. Stop Socket.IO
     if (io) {
       await io.close();
-      console.log('✅ Socket.IO server closed');
+      logger.info('Socket.IO server closed');
     }
 
     // 4. Disconnect Redis
     if (redis && redis.isOpen) {
       await redis.quit();
-      console.log('✅ Redis client closed');
+      logger.info('Redis client closed');
     }
   } catch (err) {
-    console.error('Error during shutdown:', err);
+    logger.error(`Error during shutdown: ${err.message}`, { stack: err.stack });
   } finally {
     process.exit(0);
   }
@@ -71,7 +79,4 @@ async function shutdown(signal) {
 
 process.on('SIGINT', () => shutdown('SIGINT'));
 
-start().catch((err) => {
-  console.error('Failed to start server', err);
-  process.exit(1);
-});
+start();

@@ -1,9 +1,10 @@
-// lightweight client registry
+import { logger } from "../config/logger";
+
 const clients = new Map(); // clientId => socket
 
 export function registerClient(apiKey, socket) {
   clients.set(apiKey, socket);
-  console.log(`🟢 Registered client ${apiKey}`);
+  logger.info(`Registered client ${apiKey}`);
 }
 
 export function getClientSocket(apiKey) {
@@ -14,8 +15,9 @@ export function unregisterClientBySocket(socket) {
   for (const [apiKey, s] of clients.entries()) {
     if (s === socket) {
       clients.delete(apiKey);
-      console.log(`🔴 Client ${apiKey} disconnected`);
+      logger.info(`Client ${apiKey} disconnected`);
       return apiKey;
     }
   }
+  logger.warn(`Attempted to unregister a socket that was not found`);
 }

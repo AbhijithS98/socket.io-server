@@ -1,15 +1,17 @@
 import { Server } from 'socket.io';
 import { registerClient, unregisterClientBySocket } from './clients.js';
 import { handleJobResponse } from './handlers.js';
+import { logger } from '../config/logger.js';
 
 // Utility function to fetch public IP
 async function getPublicIP() {
   try {
     const res = await fetch("https://api.ipify.org?format=json");
     const data = await res.json();
+    logger.debug(`Fetched public IP: ${data.ip}`);
     return data.ip;
   } catch (err) {
-    console.error("Failed to fetch public IP:", err);
+    logger.error(`Failed to fetch public IP: ${err.message}`, { stack: err.stack });
     return "::1"; // fallback;
   }
 }
@@ -21,7 +23,7 @@ export async function initSocket(server) {
   });
 
   io.on('connection', (socket) => {
-    console.log('✅ Electron client connected with socket id:', socket.id);
+    logger.info(`Electron client connected with socket id: ${socket.id}`);
 
     socket.on('register', async (apiKey, callback) => {
       registerClient(apiKey, socket);
@@ -32,7 +34,7 @@ export async function initSocket(server) {
     });
 
     socket.on('job-response', async (response) => {
-      console.log(`📤 Got response from client: ${response.clientId}`);
+      logger.info(`Got response from client: ${response.clientId}`);
       // delegate to handlers
       await handleJobResponse(response);
     });

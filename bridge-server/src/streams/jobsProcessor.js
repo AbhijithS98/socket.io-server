@@ -1,6 +1,7 @@
 import { redis } from '../config/redisClient.js';
 import { JOBS_GROUP, JOBS_STREAM } from '../config/constants.js';
 import { processJob } from '../helpers/streamHelpers.js';
+import { logger } from '../config/logger.js';
 
 const MIN_IDLE_TIME = 60000; // 60s → jobs older than this can be reclaimed
 const RECLAIM_COUNT = 10; // no. of jobs reclaim at once
@@ -9,7 +10,7 @@ let running = true;
 
 // Main polling loop for new jobs
 export async function pollJobs(consumerId) {
-  console.log('Starting pollJobs with consumer:', consumerId);
+  logger.info(`Starting pollJobs with consumer: ${consumerId}`);
 
   while (running) {
     try {
@@ -25,7 +26,7 @@ export async function pollJobs(consumerId) {
         }
       }
     } catch (err) {
-      console.error('pollJobs error:', err);
+      logger.error(`pollJobs error: ${err.message}`, { stack: err.stack });
       await new Promise((r) => setTimeout(r, 1000)); // avoid hot loop
     }
   }
@@ -48,17 +49,20 @@ export async function reclaimStuckJobs(consumerId) {
     const reclaimed = result.messages || [];
 
     if (reclaimed.length > 0) {
-      console.log(`-> [${consumerId}] Reclaimed ${reclaimed.length} stuck jobs`);
+      logger.info(`[${consumerId}] Reclaimed ${reclaimed.length} stuck jobs`);
 
       for (const msg of reclaimed) {
         await processJob(msg, consumerId, true); // true = isReclaimed
       }
+    } else {
+      logger.debug(`[${consumerId}] No stuck jobs to reclaim`);
     }
   } catch (err) {
-    console.error('reclaimStuckJobs error:', err);
+    logger.error(`reclaimStuckJobs error: ${err.message}`, { stack: err.stack });
   }
 }
 
 export async function stopJobsProcessor() {
   running = false;
+  logger.info('Stopped jobs processor loop');
 }
