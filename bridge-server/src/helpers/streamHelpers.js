@@ -6,7 +6,7 @@ import { getClientSocket } from '../socket/clients.js';
 // === Trim function  ===
 export async function trimStream(streamName) {
   try {
-    await redis.xTrim(streamName, 'MAXLEN', '~', MAX_STREAM_LENGTH);
+    await redis.xTrim(streamName, 'MAXLEN', MAX_STREAM_LENGTH, { APPROXIMATED: true });
   } catch (err) {
     console.error(`❌ Failed trimming stream ${streamName}:`, err);
   }

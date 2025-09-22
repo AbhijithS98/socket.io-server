@@ -1,4 +1,4 @@
-export const testJobs = [
+export const TEST_JOBS = [
   {
     client: "clientA123",
     endpoint: "https://dummyjson.com/todos/2",
