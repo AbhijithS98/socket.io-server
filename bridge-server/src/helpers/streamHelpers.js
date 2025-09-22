@@ -1,6 +1,16 @@
 import { redis } from '../config/redisClient.js';
-import { JOBS_STREAM, JOBS_GROUP, RESPONSES_STREAM } from '../config/constants.js';
+import { JOBS_STREAM, JOBS_GROUP, RESPONSES_STREAM, MAX_STREAM_LENGTH } from '../config/constants.js';
 import { getClientSocket } from '../socket/clients.js';
+
+
+// === Trim function  ===
+export async function trimStream(streamName) {
+  try {
+    await redis.xTrim(streamName, 'MAXLEN', '~', MAX_STREAM_LENGTH);
+  } catch (err) {
+    console.error(`❌ Failed trimming stream ${streamName}:`, err);
+  }
+}
 
 export async function ensureGroups() {
   try {
@@ -16,9 +26,12 @@ export async function ensureGroups() {
 }
 
 export async function addResponseToStream(responseObj) {
-  return redis.xAdd(RESPONSES_STREAM, '*', {
+  const id = await redis.xAdd(RESPONSES_STREAM, '*', {
     response: JSON.stringify(responseObj),
   });
+
+  await trimStream(RESPONSES_STREAM);
+  return id;
 }
 
 export async function ackJob(streamId) {
