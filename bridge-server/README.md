@@ -76,6 +76,7 @@ _Edit .env with actual values:_
 - PORT         → Port on which the Socket.IO server will run (eg: 3000)
 - REDIS_URL    → Redis connection URL 
 - INSTANCE_ID  → Unique identifier for this server instance. Used to create dynamic Redis consumer groups (eg: io-server-1)
+- NODE_ENV     → Set to either 'development' / 'production' accordingly.
  
 _Note: For production, each instance must have a unique `INSTANCE_ID` (e.g: io-server-1, io-server-2) so that jobs are correctly claimed and processed._
 ---

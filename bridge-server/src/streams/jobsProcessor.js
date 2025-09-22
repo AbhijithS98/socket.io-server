@@ -54,9 +54,7 @@ export async function reclaimStuckJobs(consumerId) {
       for (const msg of reclaimed) {
         await processJob(msg, consumerId, true); // true = isReclaimed
       }
-    } else {
-      logger.debug(`[${consumerId}] No stuck jobs to reclaim`);
-    }
+    } 
   } catch (err) {
     logger.error(`reclaimStuckJobs error: ${err.message}`, { stack: err.stack });
   }
