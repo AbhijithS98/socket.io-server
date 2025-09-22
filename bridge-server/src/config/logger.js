@@ -1,7 +1,12 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { createLogger, format, transports } from 'winston';
+
 const { combine, timestamp, printf, colorize } = format;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const logDir = path.join(__dirname, '../logs');
 
