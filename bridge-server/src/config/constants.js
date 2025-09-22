@@ -12,3 +12,6 @@ export const JOBS_GROUP = `jobsGroup-${INSTANCE_ID}`;
 export function createConsumerId() {
   return `io-${Math.floor(Math.random() * 10000)}-${INSTANCE_ID}`;
 }
+
+// === Maximum number of entries allowed in the Stream ===
+export const MAX_STREAM_LENGTH = 10000; 

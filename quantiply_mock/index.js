@@ -3,6 +3,13 @@ import fs from "fs";
 import { createClient } from "redis";
 import { nanoid } from "nanoid";
 import { testJobs } from "./jobs.js";
+import {
+  JOBS_STREAM,
+  RESPONSES_STREAM,
+  RESPONSES_GROUP,
+  RESPONSES_CONSUMER,
+  MAX_STREAM_LENGTH,
+} from "./config/constants.js";
 
 dotenv.config();
 
@@ -10,10 +17,6 @@ const redisURL = process.env.REDIS_URL;
 const redis = createClient({ url: redisURL });
 await redis.connect();
 
-const JOBS_STREAM = "jobsStream";
-const RESPONSES_STREAM = "responsesStream";
-const RESPONSES_GROUP = "responsesGroup";
-const RESPONSES_CONSUMER = `main-${Math.floor(Math.random() * 10000)}`;
 
 try {
   await redis.xGroupCreate(RESPONSES_STREAM, RESPONSES_GROUP, "0", {
@@ -27,6 +30,15 @@ try {
 }
 
 const pendingRequests = new Map();
+
+// === Trim function  ===
+async function trimStream(stream) {
+  try {
+    await redis.xTrim(stream, "MAXLEN", "~", MAX_STREAM_LENGTH);
+  } catch (err) {
+    console.error(`❌ Error trimming stream ${stream}:`, err);
+  }
+}
 
 // Poll for responses
 async function pollResponses() {
@@ -65,7 +77,10 @@ async function pollResponses() {
 
         // Handle file saving if needed
         if (contentType === "zip" || contentType === "gz") {
-          fs.writeFileSync(`response_${requestId}.${contentType}`, response.body);
+          fs.writeFileSync(
+            `response_${requestId}.${contentType}`,
+            response.body
+          );
         } else if (contentType === "csv") {
           fs.writeFileSync(`response_${requestId}.csv`, response.body, "utf8");
         }
@@ -102,9 +117,12 @@ export async function sendJob(
 
     // Write to Redis stream
     try {
-      await redis.xAdd(JOBS_STREAM, "*", {
+      const id = await redis.xAdd(JOBS_STREAM, "*", {
         job: JSON.stringify(job),
       });
+
+      // Trim after adding
+      await trimStream(JOBS_STREAM);
       console.log("✅ Added job to stream:", requestId);
     } catch (err) {
       console.error("❌ Error adding job to Redis stream:", err.message);
@@ -118,7 +136,7 @@ export async function sendJob(
         reject(new Error(`Timeout waiting for response (reqId: ${requestId})`));
         pendingRequests.delete(requestId);
       }
-    }, 60000);
+    }, 30000);
   });
 }
 
