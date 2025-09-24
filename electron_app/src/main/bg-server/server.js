@@ -27,7 +27,7 @@ function stopServer() {
   if (serverInstance) {
     serverInstance.close(() => {
       console.log("-> Express server stopped.");
-      sendLogToRenderer("Background server stopped...")
+      sendLogToRenderer("Background server stopped..!")
       serverInstance = null;
     });
   }

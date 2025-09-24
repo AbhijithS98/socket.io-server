@@ -9,7 +9,6 @@ contextBridge.exposeInMainWorld('api', {
   saveApiKey: (key) => ipcRenderer.invoke("save-api-key", key),
   getApiKey: () => ipcRenderer.invoke("get-api-key"),
 
-  // readLogs: () => ipcRenderer.invoke("read-logs"), // Fetch existing logs
   // getPublicUrl: () => ipcRenderer.invoke('get-public-url'),
   // getLocalIp: () => ipcRenderer.invoke('get-local-ip'),
 });

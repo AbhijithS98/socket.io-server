@@ -36,13 +36,6 @@ body {
   background-color: #28c940;
 }
 
-#toggle-server-btn {
-  padding: 8px 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fff;
-  cursor: pointer;
-}
 
 .logo-box {
   display: flex;
@@ -61,7 +54,82 @@ body {
 
 .client-info {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column; /* stack heading and form vertically */
+  align-items: flex-start; /* form aligns to left */
   width: 100%;
+  gap: 15px; /* spacing between heading and form */
 }
+
+
+/* Setup page form styles */
+.client-info h3 {
+  align-self: center; /* center the heading horizontally */
+  margin: 0; /* remove default margin */
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  gap: 15px;
+  max-width: 400px;
+  margin-top: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 20px 20px;
+}
+
+.form-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-primary {
+  background-color: #dc3545; /* red */
+  color: #fff;
+}
+
+.btn-secondary {
+  background-color: #6c757d; /* gray */
+  color: #fff;
+}
+
+.btn-setup {
+  background-color: #007bff; /* Bootstrap blue */
+  color: #fff;
+}
+
+.btn-success {
+  background-color: #28a745; /* Bootstrap green */
+  color: #fff;
+}
+

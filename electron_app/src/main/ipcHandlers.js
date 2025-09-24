@@ -76,13 +76,4 @@ module.exports = function registerIpcHandlers(ipcMain, mainWindow) {
     return null;
   });
 
-  // // Read logs from file
-  // ipcMain.handle("read-logs", async () => {
-  //   try {
-  //     return fs.readFileSync(logFile, "utf8");
-  //   } catch(err) {
-  //     console.log("error in reading file:", err)
-  //     return 'No logs yet.\n';
-  //   }
-  // });
 };

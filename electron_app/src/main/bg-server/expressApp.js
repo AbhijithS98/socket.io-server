@@ -8,7 +8,7 @@ function createExpressApp() {
     res.send("Hello from Electron's express app!");
   });
   
-  sendLogToRenderer("Starting Server ...")
+  sendLogToRenderer("Starting background server ...")
   return app;
 }
 
