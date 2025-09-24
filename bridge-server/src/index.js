@@ -11,7 +11,7 @@ import { logger } from "./config/logger.js";
 
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 let io; // will hold Socket.IO instance
 let consumerId;

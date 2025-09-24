@@ -8,6 +8,8 @@ import {
 dotenv.config();
 
 const redisURL = process.env.REDIS_URL;
+console.log("redisURL:",redisURL);
+
 export const redis = createClient({ url: redisURL });
 
 await redis.connect();
